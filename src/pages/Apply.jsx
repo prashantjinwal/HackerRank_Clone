@@ -3,36 +3,47 @@ import PageHeader from '../components/PageHeader';
 import axios from 'axios';
 
 export default function Apply() {
-  const [companies, setCompanies] = useState([]);
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Fetch data from Jobicy API
-    axios.get('https://jobicy.com/api/v2/remote-jobs')
-      .then(response => {
-        setCompanies(response.data);
-      })
-      .catch(error => {
-        console.error('There was an error fetching the company data!', error);
-      });
+    const fetchJobs = async () => {
+      const url = 'https://indeed-indeed.p.rapidapi.com/apisearch?v=2&format=json&q=java&l=austin%2C%20tx&radius=25';
+      const options = {
+        headers: {
+          'x-rapidapi-key': '992ea23370msh35e1b27346283d7p10da43jsn9e8cbde86ac4', // Replace with your actual RapidAPI key
+          'x-rapidapi-host': 'indeed-indeed.p.rapidapi.com'
+        }
+      };
+
+      try {
+        const response = await axios.get(url, options);
+        setJobs(response.data); // Adjust this based on the actual response structure
+        setLoading(false);
+      } catch (error) {
+        setError(error);
+        console.log(error)
+        setLoading(false);
+      }
+    };
+
+    fetchJobs();
   }, []);
 
   return (
-    <div className="certify-container bg-page_background min-h-screen w-full">
+    <div className="certify-container bg-page_background min-h-screen w-full  ">
       <PageHeader pageName="Apply" heading="Get Your Dream Job" bookmarkedChanllenges={false} />
-      <div className="flex flex-wrap justify-center gap-6 p-6">
-        {companies.length > 0 ? (
-          companies.map(company => (
-            <div key={company.id} className="bg-white border border-gray-200 rounded-lg shadow-md p-6 w-80">
-              <h2 className="text-xl font-semibold mb-2">{company.title}</h2>
-              <p className="text-gray-700 mb-2">{company.company}</p>
-              <p className="text-gray-700 mb-4">{company.location}</p>
-              <p className="text-gray-500">{company.description}</p>
-            </div>
-          ))
-        ) : (
-          <p>Loading...</p>
-        )}
-      </div>
+
+      {loading && <p>Loading...</p>}
+      {error && <p>Error: {error.message}</p>}
+      {!loading && !error && (
+        <ul>
+          {jobs.map((job, index) => (
+            <li key={index}>{job.title}</li> // Adjust the property name based on the actual job object structure
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
